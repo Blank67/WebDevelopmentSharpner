@@ -1,6 +1,7 @@
 "use strict"
 
 // import axios from "axios";
+
 var flag =  true;;
 const form = document.querySelector('#addForm');
 const itemList = document.querySelector('#items');
@@ -17,7 +18,7 @@ window.addEventListener('DOMContentLoaded',() => {
                 showNewUserOnScreen(obj);
             });
         })
-        .catch((err) => {console.log(err);})
+        .catch((err) => {console.log("ERROR CATCH BLOCK:",err);})
   });
 
 function saveToLocal(e){
@@ -37,38 +38,39 @@ function saveToLocal(e){
             showNewUserOnScreen(res.data)
             // console.log(res);
         })
-        .catch((err) => {console.log(err);})
-    // showNewUserOnScreen(obj);
+        .catch((err) => {console.log("ERROR CATCH BLOCK:",err);})
 }
 
 function showNewUserOnScreen(user){
     form.reset();
     removeUserFromScreen(user.email);
-    const childHTTML = `<li class="list-group-item" id=${user.email}> Item: ${user.newItem}<br>User: ${user.userName}
-                        <span id=${user.userName} hidden>${user.userName}</span>
-                        <button class="btn btn-danger btn-sm float-right delete" onclick=deleteUser('${user.email}')>Delete</button>
+    const childHTTML = `<li class="list-group-item" id=${user._id}> Item: ${user.newItem}<br>User: ${user.userName}
+                        <span id=${user.email} hidden>${user._id}</span>
+                        <button class="btn btn-danger btn-sm float-right delete" onclick=deleteUser('${user._id}')>Delete</button>
                         <button class="btn btn-danger btn-sm float-right delete" style="background-color:#f4f4f4; color:black" onclick=editUserDetails('${user.email}','${user.userName}','${user.newItem}')>Edit</button>
                         </li>`;
-    // console.log(user.email);
-    // console.log(user.userName);
-    // console.log(user.newItem);
     itemList.innerHTML = itemList.innerHTML+childHTTML;
 }
 
-function removeUserFromScreen(emailId){
+function removeUserFromScreen(unqID){
     const parentNode = document.querySelector('#items');
-    const childNodeToBeDeleted = document.getElementById(`${emailId}`); //Unable to user querySelector
+    const childNodeToBeDeleted = document.getElementById(`${unqID}`);
     // console.log(childNodeToBeDeleted);
-
     if(childNodeToBeDeleted != null && flag){
         parentNode.removeChild(childNodeToBeDeleted)
     }
 }
 
-function deleteUser(emailId){
-    localStorage.removeItem(emailId);
-    flag = true;
-    removeUserFromScreen(emailId);
+function deleteUser(unqID){
+    // localStorage.removeItem(emailId);
+    axios
+        .delete(`https://crudcrud.com/api/de30d677e3424561a29b53295694f538/demo-cloud/${unqID}`)
+        .then(() => {
+            console.log(`Entry deleted!`);
+            flag = true;
+            removeUserFromScreen(unqID);
+        })
+        .catch((err) => {console.log("ERROR CATCH BLOCK:",err);})
 }
 
 function editUserDetails(emailId, name, newItem){
