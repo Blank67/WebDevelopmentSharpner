@@ -7,20 +7,18 @@ const itemList = document.querySelector('#items');
 form.addEventListener('submit',saveToLocal);
 
 window.addEventListener('DOMContentLoaded',() => {
-    const localStorageObj = localStorage;
-    console.log(`localStorageObj---> ${localStorageObj}`);
-    const localStorageKeys = Object.keys(localStorageObj);
-    console.log(`localStorageKeys---> ${localStorageKeys}`);
-    for(let i=0;i<localStorageKeys.length;i++){
-        const key = localStorageKeys[i];
-        console.log(key);
-        const userDetailsString = localStorageObj[key];
-        console.log(userDetailsString);
-        const userDetailsObj = JSON.parse(userDetailsString);
-        console.log(userDetailsObj);
-        showNewUserOnScreen(userDetailsObj);
-    }
-});
+    flag = false;
+    axios
+        .get('https://crudcrud.com/api/de30d677e3424561a29b53295694f538/demo-cloud')
+        .then((res) => {
+            // console.log(res.data);
+            res.data.forEach(obj => {
+                console.log(obj);
+                showNewUserOnScreen(obj);
+            });
+        })
+        .catch((err) => {console.log(err);})
+  });
 
 function saveToLocal(e){
     e.preventDefault();
