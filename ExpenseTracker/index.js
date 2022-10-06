@@ -1,23 +1,22 @@
+"use strict"
+
 const form = document.querySelector('#addForm');
 const mainList = document.querySelector('#mainList');
 
 form.addEventListener('submit',saveToLocal);
+document.addEventListener('DOMContentLoaded',refresh);
 
-addEventListener('DOMContentLoaded',() => {
-    const localStorageObj = localStorage;
-    console.log(`localStorageObj---> ${localStorageObj}`);
-    const localStorageKeys = Object.keys(localStorageObj);
-    console.log(`localStorageKeys---> ${localStorageKeys}`);
-    for(let i=0;i<localStorageKeys.length;i++){
-        const key = localStorageKeys[i];
-        console.log(key);
-        const expenseDataString = localStorageObj[key];
-        console.log(expenseDataString);
-        const expenseDataObj = JSON.parse(expenseDataString);
-        console.log(expenseDataObj);
-        showOnScreen(expenseDataObj);
-    }
-});
+function refresh(){
+    axios
+        .get('https://crudcrud.com/api/57f3ae02f0eb4e6d9abfc96a5aac5121/expense-tracker')
+        .then((res) => {
+            res.data.forEach(obj => {
+                console.log(obj);
+                showOnScreen(obj);
+            })
+        })
+        .catch((err) => {'Error Block: ',err})
+}
 
 function saveToLocal(e){
     e.preventDefault();
@@ -29,41 +28,44 @@ function saveToLocal(e){
         description,
         category
     };
-    localStorage.setItem(description,JSON.stringify(expense));
-    showOnScreen(expense);
+    axios
+        .post('https://crudcrud.com/api/57f3ae02f0eb4e6d9abfc96a5aac5121/expense-tracker',expense)
+        .then(() => {
+            showOnScreen(expense);
+        })
+        .catch((err) => {console.log("Error Block: ",err);})
 }
 
 function showOnScreen(expObj){
     form.reset();
     removeExpenseFromScreen(expObj.description);
-    const liHTML = `<li class="list-group-item" id="${expObj.description}"> Amount- Rs. ${expObj.amount}<br>Description- ${expObj.description}<br>Category- ${expObj.category}
+    const liHTML = `<li class="list-group-item" id="${expObj._id}"> Amount- Rs. ${expObj.amount}<br>Description- ${expObj.description}<br>Category- ${expObj.category}
                     <span id=${expObj.description} hidden>${expObj}</span>
-                    <button class="btn btn-danger btn-sm float-right delete" onclick=deleteExpense('${expObj.description}') style="margin-left:5px">Delete</button>
-                    <button class="btn btn-danger btn-sm float-right delete" style="background-color:#f4f4f4; color:black" onclick=editExpense('${expObj.description}','${expObj.amount}','${expObj.category}')>Edit</button>                    
+                    <button class="btn btn-danger btn-sm float-right delete" onclick=deleteExpense('${expObj._id}') style="margin-left:5px">Delete</button>
+                    <button class="btn btn-danger btn-sm float-right delete" style="background-color:#f4f4f4; color:black" onclick=editExpense('${expObj.description}','${expObj.amount}','${expObj.category}','${expObj._id}')>Edit</button>                    
                     </li>`;
     mainList.innerHTML = mainList.innerHTML+liHTML; 
 }
 
-function deleteExpense(description){  
-    // if(confirm('Do you want to delete this expense?')){
-        localStorage.removeItem(description);
-        removeExpenseFromScreen(description);
-    // }else{
-    //     console.log(`${localStorage.getItem(description)} is not deleted.`);
-    // }
+function deleteExpense(uniqID){  
+        axios
+            .delete(`https://crudcrud.com/api/57f3ae02f0eb4e6d9abfc96a5aac5121/expense-tracker/${uniqID}`)
+            .then(() => {
+                removeExpenseFromScreen(uniqID);
+            })
+            .catch((err) => {console.log("Error Block: ",err);})
 }
 
-function editExpense(description,amount,category){
+function editExpense(description,amount,category,uniqID){
     document.querySelector('#amount').value = amount;
     document.querySelector('#description').value = description;
     document.querySelector('#category').value = category;
-    deleteExpense(description);
+    deleteExpense(uniqID);
 }
 
-function removeExpenseFromScreen(key){
-    const parentElement = document.querySelector('#mainList');
-    const expenseToBeDeleted = document.querySelector(`#${key}`);
+function removeExpenseFromScreen(uniqID){
+    const expenseToBeDeleted = document.getElementById(`${uniqID}`);
     if(expenseToBeDeleted != null){
-        parentElement.removeChild(expenseToBeDeleted);
+        mainList.removeChild(expenseToBeDeleted);
     }
 }
